@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:safe_zone/widgets/common_app_bar.dart';
 
 class PlacesScreen extends StatelessWidget {
   final List<Map<String, dynamic>> markers;
@@ -18,7 +19,7 @@ class PlacesScreen extends StatelessWidget {
     final unsafeMarkers = markers.where((m) => m['isSafe'] == false).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text("$userName's SafeZone List")),
+      appBar: buildCommonAppBar(context, title: '$userName\'s SafeZone List'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

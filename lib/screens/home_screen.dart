@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:safe_zone/widgets/common_app_bar.dart';
 import 'map_screen.dart';
 import 'welcome_screen.dart';
 
@@ -27,16 +28,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SafeZone Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _signOut(context),
-            tooltip: 'Sign Out',
-          ),
-        ],
-      ),
+      appBar: buildCommonAppBar(context, title: 'SafeZone Home'),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),

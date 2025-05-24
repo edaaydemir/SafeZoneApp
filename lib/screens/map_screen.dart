@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:safe_zone/screens/places_screen.dart';
+import 'package:safe_zone/widgets/common_app_bar.dart';
 
 class PlaceMarker {
   final LatLng position;
@@ -54,7 +55,6 @@ class _MapScreenState extends State<MapScreen> {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.deniedForever) {
-      // İzin kalıcı reddedilmiş, kullanıcıya bilgi verilebilir
       return;
     }
 
@@ -68,7 +68,6 @@ class _MapScreenState extends State<MapScreen> {
 
   List<PlaceMarker> get _filteredMarkers {
     if (!_filterNearby || _userLocation == null) return _markers;
-
     final Distance distance = Distance();
     return _markers.where((marker) {
       final km = distance.as(
@@ -76,7 +75,7 @@ class _MapScreenState extends State<MapScreen> {
         _userLocation!,
         marker.position,
       );
-      return km <= 5.0; // 5 km yarıçap içinde göster
+      return km <= 5.0;
     }).toList();
   }
 
@@ -188,9 +187,10 @@ class _MapScreenState extends State<MapScreen> {
     final center = _userLocation ?? LatLng(39.7667, 30.5256);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SafeZone Map'),
-        actions: [
+      appBar: buildCommonAppBar(
+        context,
+        title: 'SafeZone Map',
+        extraActions: [
           IconButton(
             icon: Icon(_filterNearby ? Icons.location_on : Icons.location_off),
             tooltip: 'Toggle Nearby Filter',
@@ -200,6 +200,7 @@ class _MapScreenState extends State<MapScreen> {
               });
             },
           ),
+
           IconButton(
             icon: const Icon(Icons.list),
             onPressed: () {

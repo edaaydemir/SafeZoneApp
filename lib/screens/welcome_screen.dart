@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
+import 'package:safe_zone/theme.dart'; // Tema kontrolü için
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -31,11 +32,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF8E7AB5); // soft mor
-    final backgroundColor = const Color(0xFFF8F3FB); // lavanta beyazı
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text('SafeZone'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.brightness_6),
+            tooltip: "Toggle Theme",
+            onPressed: AppThemes.toggleTheme,
+          ),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -43,12 +53,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Welcome to SafeZone!',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -57,8 +67,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   decoration: InputDecoration(
                     labelText: 'Enter your name',
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: isDark ? const Color(0xFF2E2E48) : Colors.white,
                     prefixIcon: const Icon(Icons.person_outline),
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white54 : Colors.black38,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -95,7 +111,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: isDark ? const Color(0xFF2E2E48) : Colors.white,
                     foregroundColor: primaryColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -119,7 +135,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: isDark ? const Color(0xFF2E2E48) : Colors.white,
                     foregroundColor: primaryColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,

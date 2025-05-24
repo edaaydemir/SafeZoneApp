@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:safe_zone/screens/welcome_screen.dart';
+import 'theme.dart'; // hem theme hem controller burada
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,18 +16,28 @@ void main() async {
       measurementId: "G-7KZ5L10WNM",
     ),
   );
-  runApp(const MyApp());
+
+  runApp(const SafeZoneApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SafeZoneApp extends StatelessWidget {
+  const SafeZoneApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'SafeZone',
-      debugShowCheckedModeBanner: false,
-      home: WelcomeScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemes.themeMode,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'SafeZone',
+          debugShowCheckedModeBanner: false,
+          theme: AppThemes.lightTheme,
+          darkTheme: AppThemes.darkTheme,
+          themeMode: mode,
+          home: const WelcomeScreen(),
+        );
+      },
     );
   }
 }
+
