@@ -35,6 +35,10 @@ dependencies:
   latlong2: ^0.9.0
   intl: any
   geolocator: ^9.0.2
+  firebase_core: ^2.27.0
+  firebase_auth: ^4.17.4
+  firebase_auth_web: ^5.8.4
+  cloud_firestore: ^4.15.4
 
 
 dev_dependencies:
