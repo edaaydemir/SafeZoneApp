@@ -52,9 +52,7 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => MapScreen(userName: userName),
-                    ),
+                    MaterialPageRoute(builder: (_) => const MapScreen()),
                   );
                 },
               ),

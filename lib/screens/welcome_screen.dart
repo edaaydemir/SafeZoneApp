@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
-import 'package:safe_zone/theme.dart'; // Tema kontrolü için
+import 'package:safe_zone/common/theme.dart'; // Tema kontrolü için
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

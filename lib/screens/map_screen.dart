@@ -1,38 +1,25 @@
+// safe_zone/screens/map_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safe_zone/screens/places_screen.dart';
 import 'package:safe_zone/widgets/common_app_bar.dart';
-
-class PlaceMarker {
-  final LatLng position;
-  final String title;
-  final String userName;
-  final bool isSafe;
-  final String? description;
-  final DateTime timestamp;
-
-  PlaceMarker({
-    required this.position,
-    required this.title,
-    required this.userName,
-    required this.isSafe,
-    this.description,
-    required this.timestamp,
-  });
-}
+import 'package:safe_zone/models/place_marker.dart';
+import 'package:safe_zone/services/marker_service.dart';
 
 class MapScreen extends StatefulWidget {
-  final String userName;
-  const MapScreen({super.key, required this.userName});
+  const MapScreen({super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
+  final MarkerService _markerService = MarkerService();
   List<PlaceMarker> _markers = [];
 
   LatLng? _selectedMarkerPosition;
@@ -47,6 +34,7 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _determinePosition();
+    _loadUserMarkers();
   }
 
   Future<void> _determinePosition() async {
@@ -66,6 +54,13 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  Future<void> _loadUserMarkers() async {
+    final markers = await _markerService.getUserMarkers();
+    setState(() {
+      _markers = markers;
+    });
+  }
+
   List<PlaceMarker> get _filteredMarkers {
     if (!_filterNearby || _userLocation == null) return _markers;
     final Distance distance = Distance();
@@ -80,105 +75,81 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _addMarkerWithTitle(LatLng position) {
-    TextEditingController _titleController = TextEditingController();
-    TextEditingController _descController = TextEditingController();
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Mark this place'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(hintText: 'Enter place name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _descController,
-                decoration: const InputDecoration(
-                  hintText: 'Optional description',
-                ),
-                maxLines: 2,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+      builder: (context) => AlertDialog(
+        title: const Text('Mark this place'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(hintText: 'Enter place name'),
             ),
-            TextButton(
-              onPressed: () async {
-                if (_titleController.text.isNotEmpty) {
-                  await _addSafetyChoiceDialog(
-                    position,
-                    _titleController.text,
-                    _descController.text.trim(),
-                  );
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Next'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descController,
+              decoration: const InputDecoration(hintText: 'Optional description'),
+              maxLines: 2,
             ),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (titleController.text.isNotEmpty) {
+                await _showSafetyChoice(position, titleController.text, descController.text.trim());
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Next'),
+          ),
+        ],
+      ),
     );
   }
 
-  Future<void> _addSafetyChoiceDialog(
-    LatLng position,
-    String title,
-    String? description,
-  ) async {
+  Future<void> _showSafetyChoice(LatLng position, String title, String? description) async {
     await showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Is this place safe?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _markers.add(
-                    PlaceMarker(
-                      position: position,
-                      title: title,
-                      userName: widget.userName,
-                      isSafe: true,
-                      description: description,
-                      timestamp: DateTime.now(),
-                    ),
-                  );
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Safe (Green)'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _markers.add(
-                    PlaceMarker(
-                      position: position,
-                      title: title,
-                      userName: widget.userName,
-                      isSafe: false,
-                      description: description,
-                      timestamp: DateTime.now(),
-                    ),
-                  );
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Unsafe (Red)'),
-            ),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Is this place safe?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await _markerService.addMarker(
+                position: position,
+                title: title,
+                description: description,
+                isSafe: true,
+              );
+              await _loadUserMarkers();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Safe (Green)'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _markerService.addMarker(
+                position: position,
+                title: title,
+                description: description,
+                isSafe: false,
+              );
+              await _loadUserMarkers();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Unsafe (Red)'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -194,37 +165,32 @@ class _MapScreenState extends State<MapScreen> {
           IconButton(
             icon: Icon(_filterNearby ? Icons.location_on : Icons.location_off),
             tooltip: 'Toggle Nearby Filter',
-            onPressed: () {
-              setState(() {
-                _filterNearby = !_filterNearby;
-              });
-            },
+            onPressed: () => setState(() => _filterNearby = !_filterNearby),
           ),
-
           IconButton(
             icon: const Icon(Icons.list),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) => PlacesScreen(
-                        markers:
-                            _markers
-                                .map(
-                                  (m) => {
-                                    'position': m.position,
-                                    'title': m.title,
-                                    'isSafe': m.isSafe,
-                                    'description': m.description,
-                                    'timestamp': m.timestamp.toIso8601String(),
-                                  },
-                                )
-                                .toList(),
-                        userName: widget.userName,
-                      ),
+                  builder: (context) => PlacesScreen(
+                    markers: _markers
+                        .map((m) => {
+                              'position': m.position,
+                              'title': m.title,
+                              'isSafe': m.isSafe,
+                              'description': m.description,
+                              'timestamp': m.timestamp.toIso8601String(),
+                              'docId': m.docId,
+                            })
+                        .toList(),
+                    userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Guest',
+                  ),
                 ),
               );
+              if (result == true) {
+                await _loadUserMarkers();
+              }
             },
           ),
         ],
@@ -235,14 +201,11 @@ class _MapScreenState extends State<MapScreen> {
             options: MapOptions(
               center: center,
               zoom: 13.0,
-              onLongPress: (tapPos, latlng) {
-                _addMarkerWithTitle(latlng);
-              },
+              onLongPress: (tapPos, latlng) => _addMarkerWithTitle(latlng),
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 subdomains: ['a', 'b', 'c'],
                 userAgentPackageName: 'com.example.safezone',
               ),
@@ -253,34 +216,28 @@ class _MapScreenState extends State<MapScreen> {
                       point: _userLocation!,
                       width: 40,
                       height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.blue,
-                        size: 30,
-                      ),
+                      child: const Icon(Icons.my_location, color: Colors.blue, size: 30),
                     ),
-                  ..._filteredMarkers.map((marker) {
-                    return Marker(
-                      point: marker.position,
-                      width: 80,
-                      height: 80,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedMarkerPosition = marker.position;
-                            _selectedMarkerTitle = marker.title;
-                            _selectedMarkerDescription = marker.description;
-                            _selectedMarkerTimestamp = marker.timestamp;
-                          });
-                        },
-                        child: Icon(
-                          Icons.location_on,
-                          color: marker.isSafe ? Colors.green : Colors.red,
-                          size: 40,
+                  ..._filteredMarkers.map((marker) => Marker(
+                        point: marker.position,
+                        width: 80,
+                        height: 80,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedMarkerPosition = marker.position;
+                              _selectedMarkerTitle = marker.title;
+                              _selectedMarkerDescription = marker.description;
+                              _selectedMarkerTimestamp = marker.timestamp;
+                            });
+                          },
+                          child: Icon(
+                            Icons.location_on,
+                            color: marker.isSafe ? Colors.green : Colors.red,
+                            size: 40,
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      )),
                 ],
               ),
             ],
@@ -299,42 +256,18 @@ class _MapScreenState extends State<MapScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '📍 $_selectedMarkerTitle',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
-                          ),
+                          Text('📍 $_selectedMarkerTitle', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           const SizedBox(height: 4),
-                          Text(
-                            'Lat: ${_selectedMarkerPosition!.latitude.toStringAsFixed(4)}, '
-                            'Lng: ${_selectedMarkerPosition!.longitude.toStringAsFixed(4)}',
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                          if (_selectedMarkerDescription != null &&
-                              _selectedMarkerDescription!.isNotEmpty)
+                          Text('Lat: ${_selectedMarkerPosition!.latitude.toStringAsFixed(4)}, Lng: ${_selectedMarkerPosition!.longitude.toStringAsFixed(4)}'),
+                          if (_selectedMarkerDescription?.isNotEmpty ?? false)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                '📝 ${_selectedMarkerDescription!}',
-                                style: const TextStyle(
-                                  color: Colors.black54,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
+                              child: Text('✏️ $_selectedMarkerDescription', style: const TextStyle(fontStyle: FontStyle.italic)),
                             ),
                           if (_selectedMarkerTimestamp != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                '🕒 ${DateFormat('dd MMM yyyy – HH:mm').format(_selectedMarkerTimestamp!)}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                              child: Text('🕒 ${DateFormat('dd MMM yyyy – HH:mm').format(_selectedMarkerTimestamp!)}'),
                             ),
                         ],
                       ),
@@ -343,7 +276,7 @@ class _MapScreenState extends State<MapScreen> {
                       top: 0,
                       right: 0,
                       child: IconButton(
-                        icon: const Icon(Icons.close, color: Colors.black),
+                        icon: const Icon(Icons.close),
                         onPressed: () {
                           setState(() {
                             _selectedMarkerPosition = null;
