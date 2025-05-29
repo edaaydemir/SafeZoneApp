@@ -77,7 +77,7 @@ flutter run
 🎓 Computer Engineering Student @ Eskişehir Technical University  
 💬 Firebase | Flutter | UX-first thinking  
 📧 edaaydemir200081@gmail.com
-🔗 GitHub / LinkedIn: (https://github.com/edaaydemir)  /  www.linkedin.com/in/edaaydemir12
+🔗 GitHub / LinkedIn: (https://github.com/edaaydemir) / www.linkedin.com/in/edaaydemir12
 
 ---
 
