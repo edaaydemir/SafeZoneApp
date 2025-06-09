@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/place_marker.dart';
+import 'package:safe_zone/models/place_marker.dart';
+import 'package:safe_zone/services/user_service.dart';
 
 class MarkerService {
   final _db = FirebaseFirestore.instance;
+  final _userService = UserService();
 
   Future<void> addMarker({
     required LatLng position,
@@ -12,12 +13,10 @@ class MarkerService {
     required String? description,
     required bool isSafe,
   }) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final uid = _userService.uid;
+    if (uid == null) return;
 
-    final uid = user.uid;
-    final doc = await _db.collection('users').doc(uid).get();
-    final userName = doc.data()?['displayName'] ?? 'Anonymous';
+    final userName = _userService.displayName ?? "Anonymous";
 
     final newDoc = _db.collection('markers').doc();
     await newDoc.set({
@@ -36,7 +35,7 @@ class MarkerService {
   }
 
   Future<List<PlaceMarker>> getUserMarkers() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = _userService.uid;
     if (uid == null) return [];
 
     final snapshot =
@@ -51,12 +50,19 @@ class MarkerService {
     required String docId,
     required String newTitle,
     required String newDescription,
-    required bool isSafe, 
+    required bool isSafe,
   }) async {
-    await FirebaseFirestore.instance.collection('markers').doc(docId).update({
+    await _db.collection('markers').doc(docId).update({
       'title': newTitle,
       'description': newDescription,
-      'isSafe': isSafe, 
+      'isSafe': isSafe,
     });
+  }
+
+  Future<List<PlaceMarker>> getAllMarkers() async {
+    final snapshot = await _db.collection('markers').get();
+    return snapshot.docs
+        .map((doc) => PlaceMarker.fromMap(doc.data(), doc.id))
+        .toList();
   }
 }

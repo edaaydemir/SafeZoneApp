@@ -1,5 +1,3 @@
-// safe_zone/screens/places_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,8 +7,13 @@ import 'package:safe_zone/services/marker_service.dart';
 class PlacesScreen extends StatefulWidget {
   final List<Map<String, dynamic>> markers;
   final String userName;
+  
 
-  const PlacesScreen({super.key, required this.markers, required this.userName});
+  const PlacesScreen({
+    super.key,
+    required this.markers,
+    required this.userName,
+  });
 
   @override
   State<PlacesScreen> createState() => _PlacesScreenState();
@@ -32,7 +35,9 @@ class _PlacesScreenState extends State<PlacesScreen> {
 
   void _editMarker(Map<String, dynamic> marker) async {
     final titleController = TextEditingController(text: marker['title']);
-    final descriptionController = TextEditingController(text: marker['description']);
+    final descriptionController = TextEditingController(
+      text: marker['description'],
+    );
     final docId = marker['docId'];
     bool isSafe = marker['isSafe'] ?? true;
 
@@ -41,7 +46,9 @@ class _PlacesScreenState extends State<PlacesScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -69,13 +76,16 @@ class _PlacesScreenState extends State<PlacesScreen> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text("Is Safe: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      "Is Safe: ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Switch(
                       value: isSafe,
                       onChanged: (val) => setState(() => isSafe = val),
                     ),
                   ],
-                )
+                ),
               ],
             ),
             actions: [
@@ -124,10 +134,7 @@ class _PlacesScreenState extends State<PlacesScreen> {
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: ListTile(
-          leading: Icon(
-            Icons.location_on,
-            color: isSafe ? Colors.green : Colors.red,
-          ),
+          leading: Icon(Icons.location_on, color: isSafe ? Colors.green : Colors.red),
           title: Text(marker['title'] ?? ''),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,9 +173,7 @@ class _PlacesScreenState extends State<PlacesScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("${widget.userName}'s SafeZone List"),
-      ),
+      appBar: AppBar(title: Text("${widget.userName}'s SafeZone List")),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

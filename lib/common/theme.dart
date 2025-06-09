@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppThemes {
-  // 🔄 Global tema kontrolü
   static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.light);
 
   static void toggleTheme() {

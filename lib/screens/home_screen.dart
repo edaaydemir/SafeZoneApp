@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:safe_zone/services/user_service.dart';
 import 'package:safe_zone/widgets/common_app_bar.dart';
 import 'map_screen.dart';
 import 'welcome_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  final String userName;
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
-  const HomeScreen({super.key, required this.userName});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-  void _signOut(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      await Future.delayed(Duration(milliseconds: 300));
+class _HomeScreenState extends State<HomeScreen> {
+  final userService = UserService();
+  String userName = '';
 
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      print("Sign out error: $e");
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    setState(() {
+      userName = userService.displayName ?? userService.email ?? "User";
+    });
   }
 
   @override

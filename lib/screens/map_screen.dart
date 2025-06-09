@@ -1,5 +1,3 @@
-// safe_zone/screens/map_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -55,7 +53,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _loadUserMarkers() async {
-    final markers = await _markerService.getUserMarkers();
+    final markers = await _markerService.getAllMarkers();
     setState(() {
       _markers = markers;
     });
@@ -105,7 +103,11 @@ class _MapScreenState extends State<MapScreen> {
           TextButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
-                await _showSafetyChoice(position, titleController.text, descController.text.trim());
+                await _showSafetyChoice(
+                  position,
+                  titleController.text,
+                  descController.text.trim(),
+                );
                 Navigator.of(context).pop();
               }
             },
@@ -116,7 +118,11 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Future<void> _showSafetyChoice(LatLng position, String title, String? description) async {
+  Future<void> _showSafetyChoice(
+    LatLng position,
+    String title,
+    String? description,
+  ) async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -156,6 +162,20 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final center = _userLocation ?? LatLng(39.7667, 30.5256);
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+
+    final userMarkers = _markers
+        .where((m) => m.userId == currentUid)
+        .map((m) => {
+              'position': m.position,
+              'title': m.title,
+              'isSafe': m.isSafe,
+              'description': m.description,
+              'timestamp': m.timestamp.toIso8601String(),
+              'docId': m.docId,
+              'userId': m.userId,
+            })
+        .toList();
 
     return Scaffold(
       appBar: buildCommonAppBar(
@@ -174,16 +194,7 @@ class _MapScreenState extends State<MapScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => PlacesScreen(
-                    markers: _markers
-                        .map((m) => {
-                              'position': m.position,
-                              'title': m.title,
-                              'isSafe': m.isSafe,
-                              'description': m.description,
-                              'timestamp': m.timestamp.toIso8601String(),
-                              'docId': m.docId,
-                            })
-                        .toList(),
+                    markers: userMarkers,
                     userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Guest',
                   ),
                 ),
@@ -218,26 +229,29 @@ class _MapScreenState extends State<MapScreen> {
                       height: 40,
                       child: const Icon(Icons.my_location, color: Colors.blue, size: 30),
                     ),
-                  ..._filteredMarkers.map((marker) => Marker(
-                        point: marker.position,
-                        width: 80,
-                        height: 80,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedMarkerPosition = marker.position;
-                              _selectedMarkerTitle = marker.title;
-                              _selectedMarkerDescription = marker.description;
-                              _selectedMarkerTimestamp = marker.timestamp;
-                            });
-                          },
-                          child: Icon(
-                            Icons.location_on,
-                            color: marker.isSafe ? Colors.green : Colors.red,
-                            size: 40,
-                          ),
+                  ..._filteredMarkers.map((marker) {
+                    return Marker(
+                      point: marker.position,
+                      width: 80,
+                      height: 80,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedMarkerPosition = marker.position;
+                            _selectedMarkerTitle = marker.title;
+                            _selectedMarkerDescription =
+                                "${marker.description ?? ''}\nAdded by: ${marker.userName}";
+                            _selectedMarkerTimestamp = marker.timestamp;
+                          });
+                        },
+                        child: Icon(
+                          Icons.location_on,
+                          color: marker.isSafe ? Colors.green : Colors.red,
+                          size: 40,
                         ),
-                      )),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ],
@@ -256,18 +270,28 @@ class _MapScreenState extends State<MapScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('📍 $_selectedMarkerTitle', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            '📍 $_selectedMarkerTitle',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
                           const SizedBox(height: 4),
-                          Text('Lat: ${_selectedMarkerPosition!.latitude.toStringAsFixed(4)}, Lng: ${_selectedMarkerPosition!.longitude.toStringAsFixed(4)}'),
+                          Text(
+                            'Lat: ${_selectedMarkerPosition!.latitude.toStringAsFixed(4)}, Lng: ${_selectedMarkerPosition!.longitude.toStringAsFixed(4)}',
+                          ),
                           if (_selectedMarkerDescription?.isNotEmpty ?? false)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
-                              child: Text('✏️ $_selectedMarkerDescription', style: const TextStyle(fontStyle: FontStyle.italic)),
+                              child: Text(
+                                '✏️ $_selectedMarkerDescription',
+                                style: const TextStyle(fontStyle: FontStyle.italic),
+                              ),
                             ),
                           if (_selectedMarkerTimestamp != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
-                              child: Text('🕒 ${DateFormat('dd MMM yyyy – HH:mm').format(_selectedMarkerTimestamp!)}'),
+                              child: Text(
+                                '🕒 ${DateFormat('dd MMM yyyy – HH:mm').format(_selectedMarkerTimestamp!)}',
+                              ),
                             ),
                         ],
                       ),

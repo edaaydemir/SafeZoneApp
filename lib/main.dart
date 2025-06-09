@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:safe_zone/screens/welcome_screen.dart';
-import 'common/theme.dart'; // hem theme hem controller burada
+import 'common/theme.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

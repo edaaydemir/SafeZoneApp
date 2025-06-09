@@ -8,6 +8,7 @@ class PlaceMarker {
   final bool isSafe;
   final String? description;
   final DateTime timestamp;
+  final String userId;
 
   PlaceMarker({
     required this.docId,
@@ -17,6 +18,7 @@ class PlaceMarker {
     required this.isSafe,
     required this.description,
     required this.timestamp,
+    required this.userId,
   });
 
   factory PlaceMarker.fromMap(Map<String, dynamic> data, String docId) {
@@ -28,18 +30,16 @@ class PlaceMarker {
       isSafe: data['isSafe'],
       description: data['description'],
       timestamp: DateTime.parse(data['timestamp']),
+      userId: data['userId'],
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'userName': userName,
-        'title': title,
-        'isSafe': isSafe,
-        'description': description,
-        'timestamp': timestamp.toIso8601String(),
-        'position': {
-          'lat': position.latitude,
-          'lng': position.longitude,
-        },
-      };
+    'userName': userName,
+    'title': title,
+    'isSafe': isSafe,
+    'description': description,
+    'timestamp': timestamp.toIso8601String(),
+    'position': {'lat': position.latitude, 'lng': position.longitude},
+  };
 }

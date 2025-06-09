@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:safe_zone/common/avatar_data.dart';
+import 'package:safe_zone/services/user_service.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -10,22 +10,10 @@ class ProfileEditScreen extends StatefulWidget {
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
+  final userService = UserService();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   String? selectedAvatarKey;
-
-  final Map<String, String> avatarMap = {
-    'avatar_astronaut': '👩‍🚀',
-    'avatar_artist': '🧑‍🎨',
-    'avatar_scientist': '👨‍🔬',
-    'avatar_programmer': '👩‍💻',
-    'avatar_wizard': '🧙‍♀️',
-    'avatar_vampire': '🧛‍♂️',
-    'avatar_elf': '🧝‍♀️',
-    'avatar_firefighter': '🧑‍🚒',
-    'avatar_judge': '👨‍⚖️',
-    'avatar_farmer': '👩‍🌾',
-  };
 
   @override
   void initState() {
@@ -34,65 +22,42 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final doc =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    final data = doc.data();
+    final data = await userService.fetchUserData();
     if (data != null) {
       _firstNameController.text = data['firstName'] ?? '';
       _lastNameController.text = data['lastName'] ?? '';
-      selectedAvatarKey = data['avatar']; // artık avatar ID geliyor
+      selectedAvatarKey = data['avatar'];
       setState(() {});
     }
   }
 
   Future<void> _saveProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      print("HATA: Kullanıcı null, giriş yapılmamış!");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('User not logged in!')));
+    if (userService.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not logged in!')),
+      );
       return;
     }
 
-    final uid = user.uid;
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
-    final fullName = "$firstName $lastName";
-
-    print("=== PROFİL KAYDI BAŞLIYOR ===");
-    print("UID: $uid");
-    print("Ad: $firstName");
-    print("Soyad: $lastName");
-    print("Avatar: $selectedAvatarKey");
 
     try {
-      // Firebase Auth'a displayName güncelle
-      await user.updateDisplayName(fullName);
-      await user.reload();
+      await userService.updateUserProfile(
+        firstName: firstName,
+        lastName: lastName,
+        avatar: selectedAvatarKey ?? '',
+      );
 
-      // Firestore'a veri yaz
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'firstName': firstName,
-        'lastName': lastName,
-        'displayName': fullName,
-        'avatar': selectedAvatarKey,
-      }, SetOptions(merge: true));
-
-      print("Firestore'a veri yazıldı ✅");
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Profile updated!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated!')),
+      );
 
       Navigator.pop(context);
     } catch (e) {
-      print("HATA: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
@@ -102,63 +67,65 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'First Name',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('First Name', style: TextStyle(fontWeight: FontWeight.bold)),
             TextField(controller: _firstNameController),
             const SizedBox(height: 12),
-            const Text(
-              'Last Name',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold)),
             TextField(controller: _lastNameController),
             const SizedBox(height: 20),
-            const Text(
-              'Choose an Avatar',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('Choose an Avatar', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Expanded(
-              child: GridView.builder(
-                itemCount: avatarKeys.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                ),
-                itemBuilder: (context, index) {
-                  final key = avatarKeys[index];
-                  final emoji = avatarMap[key]!;
-                  final isSelected = selectedAvatarKey == key;
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedAvatarKey = key;
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isSelected ? Colors.blue : Colors.grey,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(emoji, style: const TextStyle(fontSize: 28)),
-                    ),
-                  );
-                },
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: avatarKeys.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1,
               ),
+              itemBuilder: (context, index) {
+                final key = avatarKeys[index];
+                final emoji = avatarMap[key]!;
+                final isSelected = selectedAvatarKey == key;
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedAvatarKey = key;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.deepPurple.shade100
+                          : Colors.white,
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.deepPurple
+                            : Colors.grey.shade300,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(4),
+                    child: Text(
+                      emoji,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Center(
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.save),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
-import 'package:safe_zone/common/theme.dart'; // Tema kontrolü için
+import 'package:safe_zone/common/theme.dart'; 
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -16,17 +16,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   void _goToHome() {
     if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your name")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please enter your name")));
       return;
     }
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(userName: _nameController.text),
-      ),
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
 
@@ -111,7 +109,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF2E2E48) : Colors.white,
+                    backgroundColor:
+                        isDark ? const Color(0xFF2E2E48) : Colors.white,
                     foregroundColor: primaryColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -135,7 +134,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF2E2E48) : Colors.white,
+                    backgroundColor:
+                        isDark ? const Color(0xFF2E2E48) : Colors.white,
                     foregroundColor: primaryColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
