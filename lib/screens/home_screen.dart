@@ -1,8 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_zone/services/user_service.dart';
 import 'package:safe_zone/widgets/common_app_bar.dart';
 import 'map_screen.dart';
-import 'welcome_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +23,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserName() async {
     setState(() {
-      userName = userService.displayName ?? userService.email ?? "User";
+      final isGuest = FirebaseAuth.instance.currentUser?.isAnonymous ?? true;
+      userName =
+          isGuest
+              ? "Guest"
+              : userService.displayName ?? userService.email ?? "User";
     });
   }
 

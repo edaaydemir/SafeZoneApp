@@ -73,48 +73,62 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _addMarkerWithTitle(LatLng position) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null || user.isAnonymous) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in to add a marker.")),
+      );
+      return;
+    }
+
     final titleController = TextEditingController();
     final descController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Mark this place'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(hintText: 'Enter place name'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Mark this place'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter place name',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(
+                    hintText: 'Optional description',
+                  ),
+                  maxLines: 2,
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(hintText: 'Optional description'),
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  if (titleController.text.isNotEmpty) {
+                    await _showSafetyChoice(
+                      position,
+                      titleController.text,
+                      descController.text.trim(),
+                    );
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text('Next'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              if (titleController.text.isNotEmpty) {
-                await _showSafetyChoice(
-                  position,
-                  titleController.text,
-                  descController.text.trim(),
-                );
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Next'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -125,37 +139,56 @@ class _MapScreenState extends State<MapScreen> {
   ) async {
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Is this place safe?'),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await _markerService.addMarker(
-                position: position,
-                title: title,
-                description: description,
-                isSafe: true,
-              );
-              await _loadUserMarkers();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Safe (Green)'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Is this place safe?'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user == null || user.isAnonymous) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("You must be logged in to add a marker."),
+                      ),
+                    );
+                    return;
+                  }
+                  await _markerService.addMarker(
+                    position: position,
+                    title: title,
+                    description: description,
+                    isSafe: true,
+                  );
+                  await _loadUserMarkers();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Safe (Green)'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user == null || user.isAnonymous) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("You must be logged in to add a marker."),
+                      ),
+                    );
+                    return;
+                  }
+                  await _markerService.addMarker(
+                    position: position,
+                    title: title,
+                    description: description,
+                    isSafe: false,
+                  );
+                  await _loadUserMarkers();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Unsafe (Red)'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              await _markerService.addMarker(
-                position: position,
-                title: title,
-                description: description,
-                isSafe: false,
-              );
-              await _loadUserMarkers();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Unsafe (Red)'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -164,18 +197,21 @@ class _MapScreenState extends State<MapScreen> {
     final center = _userLocation ?? LatLng(39.7667, 30.5256);
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
-    final userMarkers = _markers
-        .where((m) => m.userId == currentUid)
-        .map((m) => {
-              'position': m.position,
-              'title': m.title,
-              'isSafe': m.isSafe,
-              'description': m.description,
-              'timestamp': m.timestamp.toIso8601String(),
-              'docId': m.docId,
-              'userId': m.userId,
-            })
-        .toList();
+    final userMarkers =
+        _markers
+            .where((m) => m.userId == currentUid)
+            .map(
+              (m) => {
+                'position': m.position,
+                'title': m.title,
+                'isSafe': m.isSafe,
+                'description': m.description,
+                'timestamp': m.timestamp.toIso8601String(),
+                'docId': m.docId,
+                'userId': m.userId,
+              },
+            )
+            .toList();
 
     return Scaffold(
       appBar: buildCommonAppBar(
@@ -193,10 +229,13 @@ class _MapScreenState extends State<MapScreen> {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PlacesScreen(
-                    markers: userMarkers,
-                    userName: FirebaseAuth.instance.currentUser?.displayName ?? 'Guest',
-                  ),
+                  builder:
+                      (context) => PlacesScreen(
+                        markers: userMarkers,
+                        userName:
+                            FirebaseAuth.instance.currentUser?.displayName ??
+                            'Guest',
+                      ),
                 ),
               );
               if (result == true) {
@@ -216,7 +255,8 @@ class _MapScreenState extends State<MapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                urlTemplate:
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 subdomains: ['a', 'b', 'c'],
                 userAgentPackageName: 'com.example.safezone',
               ),
@@ -227,7 +267,11 @@ class _MapScreenState extends State<MapScreen> {
                       point: _userLocation!,
                       width: 40,
                       height: 40,
-                      child: const Icon(Icons.my_location, color: Colors.blue, size: 30),
+                      child: const Icon(
+                        Icons.my_location,
+                        color: Colors.blue,
+                        size: 30,
+                      ),
                     ),
                   ..._filteredMarkers.map((marker) {
                     return Marker(
@@ -272,7 +316,10 @@ class _MapScreenState extends State<MapScreen> {
                         children: [
                           Text(
                             '📍 $_selectedMarkerTitle',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -283,7 +330,9 @@ class _MapScreenState extends State<MapScreen> {
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
                                 '✏️ $_selectedMarkerDescription',
-                                style: const TextStyle(fontStyle: FontStyle.italic),
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                             ),
                           if (_selectedMarkerTimestamp != null)

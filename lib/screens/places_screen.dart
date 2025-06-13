@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:safe_zone/models/place_marker.dart';
 import 'package:safe_zone/services/marker_service.dart';
 
 class PlacesScreen extends StatefulWidget {
   final List<Map<String, dynamic>> markers;
   final String userName;
-  
 
   const PlacesScreen({
     super.key,

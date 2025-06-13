@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:safe_zone/models/place_marker.dart';
 import 'package:safe_zone/services/user_service.dart';
@@ -14,7 +15,8 @@ class MarkerService {
     required bool isSafe,
   }) async {
     final uid = _userService.uid;
-    if (uid == null) return;
+    final isGuest = FirebaseAuth.instance.currentUser?.isAnonymous ?? true;
+    if (uid == null || isGuest) return;
 
     final userName = _userService.displayName ?? "Anonymous";
 

@@ -33,9 +33,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _saveProfile() async {
     if (userService.currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not logged in!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('User not logged in!')));
       return;
     }
 
@@ -49,15 +49,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         avatar: selectedAvatarKey ?? '',
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profile updated!')));
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -72,22 +72,31 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('First Name', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'First Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             TextField(controller: _firstNameController),
             const SizedBox(height: 12),
-            const Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Last Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             TextField(controller: _lastNameController),
             const SizedBox(height: 20),
-            const Text('Choose an Avatar', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Choose an Avatar',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: avatarKeys.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
+                crossAxisCount: 8,
+                mainAxisSpacing: 6,
+                crossAxisSpacing: 6,
                 childAspectRatio: 1,
               ),
               itemBuilder: (context, index) {
@@ -104,23 +113,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.deepPurple.shade100
-                          : Colors.white,
+                      color:
+                          isSelected
+                              ? Colors.deepPurple.shade100
+                              : Colors.white,
                       border: Border.all(
-                        color: isSelected
-                            ? Colors.deepPurple
-                            : Colors.grey.shade300,
+                        color:
+                            isSelected
+                                ? Colors.deepPurple
+                                : Colors.grey.shade300,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(4),
-                    child: Text(
-                      emoji,
-                      style: const TextStyle(fontSize: 24),
-                    ),
+                    child: Text(emoji, style: const TextStyle(fontSize: 20)),
                   ),
                 );
               },

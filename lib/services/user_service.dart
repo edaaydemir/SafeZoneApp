@@ -16,15 +16,20 @@ class UserService {
     return doc.data();
   }
 
-  Future<void> updateUserProfile({
-    required String firstName,
-    required String lastName,
-    required String avatar,
-  }) async {
-    final fullName = '$firstName $lastName';
+Future<void> updateUserProfile({
+  required String firstName,
+  required String lastName,
+  required String avatar,
+}) async {
+  if (currentUser == null || uid == null) {
+    throw Exception("No logged-in user");
+  }
 
-    await currentUser?.updateDisplayName(fullName);
-    await currentUser?.reload();
+  final fullName = '$firstName $lastName';
+
+  try {
+    await currentUser!.updateDisplayName(fullName);
+    await currentUser!.reload();
 
     await _firestore.collection('users').doc(uid).set({
       'firstName': firstName,
@@ -32,7 +37,12 @@ class UserService {
       'displayName': fullName,
       'avatar': avatar,
     }, SetOptions(merge: true));
+  } catch (e) {
+    print("🔥 updateUserProfile error: $e");
+    rethrow;
   }
+}
+
 
   Future<void> signUpWithEmail({
   required String firstName,

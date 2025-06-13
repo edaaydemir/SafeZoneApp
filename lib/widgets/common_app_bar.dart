@@ -16,10 +16,11 @@ PreferredSizeWidget buildCommonAppBar(
     title: Text(title),
     actions: [
       FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('users')
-            .doc(FirebaseAuth.instance.currentUser?.uid)
-            .get(),
+        future:
+            FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser?.uid)
+                .get(),
         builder: (context, snapshot) {
           String avatarEmoji = '👤';
           if (snapshot.hasData) {
@@ -29,10 +30,7 @@ PreferredSizeWidget buildCommonAppBar(
             }
           }
           return IconButton(
-            icon: Text(
-              avatarEmoji,
-              style: const TextStyle(fontSize: 22),
-            ),
+            icon: Text(avatarEmoji, style: const TextStyle(fontSize: 22)),
             tooltip: 'Edit Profile',
             onPressed: () {
               final user = FirebaseAuth.instance.currentUser;
@@ -41,29 +39,32 @@ PreferredSizeWidget buildCommonAppBar(
               if (isGuest) {
                 showDialog(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text("Profile unavailable"),
-                    content: const Text(
-                      "You're currently using the app as a guest.\n\nTo access your profile and personalize your experience, please sign up.",
-                    ),
-                    actions: [
-                      TextButton(
-                        child: const Text("Cancel"),
-                        onPressed: () => Navigator.of(context).pop(),
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text("Profile unavailable"),
+                        content: const Text(
+                          "You're currently using the app as a guest.\n\nTo access your profile and personalize your experience, please sign up.",
+                        ),
+                        actions: [
+                          TextButton(
+                            child: const Text("Cancel"),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.person_add),
+                            label: const Text("Sign Up"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SignupScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.person_add),
-                        label: const Text("Sign Up"),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const SignupScreen()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
                 );
                 return;
               }
@@ -71,7 +72,11 @@ PreferredSizeWidget buildCommonAppBar(
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
-              ).then((_) => (context as Element).markNeedsBuild());
+              ).then((result) {
+                if (result == true && context.mounted) {
+                  (context as Element).markNeedsBuild();
+                }
+              });
             },
           );
         },
