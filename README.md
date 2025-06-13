@@ -18,22 +18,23 @@ Whether you're a student, a traveler, or part of a local community — SafeZone 
 > "Turn everyday places into shared signals of safety."
 
 ---
+
+## 📸 Screenshots
+
 ### 🖼️ Welcome Screens
 | Welcome 1 | Welcome 2 | Welcome 3 |
 |-----------|-----------|-----------|
 | ![Welcome1](screenshots/welcome1.png) | ![Welcome2](screenshots/welcome2.png) | ![Welcome3](screenshots/welcome3.png) |
 
-## 📸 Screenshots
-```
-- [ ] 🚪 ![Welcome Screen 1](screenshots/welcome1.png)  
-- [ ] 🚪 ![Welcome Screen 2](screenshots/welcome2.png)  
-- [ ] 🚪 ![Welcome Screen 3](screenshots/welcome3.png)
-- [ ] 🗺️ ![Map View](screenshots/map_screen.png)  
-- [ ] ➕ ![Marker Dialog](screenshots/marker_dialog.png)  
-- [ ] 📋 ![List View](screenshots/list_screen.png)  
-- [ ] 👤 ![Profile Edit](screenshots/profile_screen.png)  
+### 🗂️ App Screens
+| 🗺️ Map View | ➕ Marker Dialog | 📋 List View |
+|-------------|------------------|---------------|
+| ![Map](screenshots/map_screen.png) | ![Marker](screenshots/marker_dialog.png) | ![List](screenshots/list_screen.png) |
 
-```
+| 👤 Profile Edit |
+|-----------------|
+| ![Profile](screenshots/profile_screen.png) |
+
 
 ---
 
