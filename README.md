@@ -33,7 +33,7 @@ Whether you're a student, a traveler, or part of a local community — SafeZone 
 
 | 👤 Profile Edit |
 |-----------------|
-| ![Profile](screenshots/profile_screen.png) |
+| ![Profile](screenshots/profile_screen.png){: width="300px" } |
 
 
 ---
