@@ -22,18 +22,39 @@ Whether you're a student, a traveler, or part of a local community — SafeZone 
 ## 📸 Screenshots
 
 ### 🖼️ Welcome Screens
-| Welcome 1 | Welcome 2 | Welcome 3 |
-|-----------|-----------|-----------|
-| ![Welcome1](screenshots/welcome1.png) | ![Welcome2](screenshots/welcome2.png) | ![Welcome3](screenshots/welcome3.png) |
+<table>
+  <tr>
+    <th>Welcome 1</th>
+    <th>Welcome 2</th>
+    <th>Welcome 3</th>
+  </tr>
+  <tr>
+    <td><img src="screenshots/welcome1.png" width="300"/></td>
+    <td><img src="screenshots/welcome2.png" width="300"/></td>
+    <td><img src="screenshots/welcome3.png" width="300"/></td>
+  </tr>
+</table>
 
 ### 🗂️ App Screens
-| 🗺️ Map View | ➕ Marker Dialog | 📋 List View |
-|-------------|------------------|---------------|
-| ![Map](screenshots/map_screen.png) | ![Marker](screenshots/marker_dialog.png) | ![List](screenshots/list_screen.png) |
+<table>
+  <tr>
+    <th>🗺️ Map View</th>
+    <th>➕ Marker Dialog</th>
+    <th>📋 List View</th>
+  </tr>
+  <tr>
+    <td><img src="screenshots/map_screen.png" width="300"/></td>
+    <td><img src="screenshots/marker_dialog.png" width="300"/></td>
+    <td><img src="screenshots/list_screen.png" width="300"/></td>
+  </tr>
+  <tr>
+    <th colspan="3">👤 Profile Edit</th>
+  </tr>
+  <tr>
+    <td colspan="3" align="center"><img src="screenshots/profile_screen.png" width="300"/></td>
+  </tr>
+</table>
 
-| 👤 Profile Edit |
-|-----------------|
-| ![Profile](screenshots/profile_screen.png){: width="300px" } |
 
 
 ---
